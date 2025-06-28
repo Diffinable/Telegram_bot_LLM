@@ -1,40 +1,60 @@
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, Request, Form, Depends
 from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, RedirectResponse
+from sqlalchemy.orm import Session
+import requests
 import sqlite3
 from datetime import datetime
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
-def get_messages():
-    return [
-        {"id": 1, "user_id": "user123", "text": "Привет! Помогите с заказом", "status": "new", "created_at": "2025-06-27 10:00"},
-        {"id": 2, "user_id": "user456", "text": "Не работает приложение", "status": "new", "created_at": "2025-06-27 10:15"},
-        {"id": 3, "user_id": "user789", "text": "Вопрос по оплате", "status": "pending", "created_at": "2025-06-27 10:30"},
-    ]
 
-def get_generated_response(message_id):
-    responses = {
-        1: "Здравствуйте! Я помогу вам с заказом. Уточните, пожалуйста, номер заказа.",
-        2: "Попробуйте перезапустить приложение. Если проблема остается, обновите до последней версии.",
-        3: "По вопросам оплаты обращайтесь в службу биллинга по телефону +7-800-xxx-xx-xx"
-    }
-    return responses.get(message_id, "Спасибо за обраение!")
 
 @app.get("/", response_class=HTMLResponse)
-async def dashboard(request: Request):
-    messages = get_messages()  
-    return templates.TemplateResponse("dashboard.html", {
+async def read_messages(request: Request, db: Session = Depends(get_db)):
+    messages = db.query(Message).filter(Message.status == 'new').all()
+
+    return templates.TemplateResponse("messages.html", {
         "request": request, 
         "messages": messages
     })
 
-@app.get_messages("/message/")
+@app.get("/message/{message_id}", response_class=HTMLResponse)
+async def message_detail(request: Request, message_id: int, db: Sesison = Depends(get_db)):
+    message = db.query(Messages).get(message_id)
+    prompt = f"Пользователь написал: {message.text}. Сгенерируй ответ."
+    llm_response = requests.post(
+        "http://llm:11434/api/generate",
+        json={"model": "tinyllama", "prompt": prompt}
+    ).json["response"]
 
-@app.post("/approve/{message_id}")
-async def approve_message(message_id: int):
-    # логика одобрения
-    return {"status": "success"}
+    return templates.TemplateResponse("message_detail.html", {
+        "request": request,
+        "message": message,
+        "llm_response": llm_response,
+    })
+
+@app.post("/message/{message_id}/action")
+async def handle_action(
+    message_id: int,
+    action: str = Form(...),
+    response_text: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    message = query(Messages).get(message_id)
+    if action == "approve":
+        new_message = Messages(
+            chat_id = message.chat_id,
+            text = response_text,
+            status = 'ready',
+            is_from_user = False,
+        )
+        db.add(new_message)
+        message.status = "processed"
+    elif action == "regenerate":
+        pass
+
+    db.commit()
+    return RedirectResponse("/", status_code=303)
+

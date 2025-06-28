@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Новые сообщения</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Чат</th>
+            <th>Пользователь</th>
+            <th>Текст</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for message in messages %}
+        <tr>
+            <td>{{ message.id }}</td>
+            <td>{{ message.chat_id }}</td>
+            <td>{{ message.user_id }}</td>
+            <td>{{ message.text|truncate(50) }}</td>
+            <td>
+                <a href="/message/{{ message.id }}" class="btn btn-primary btn-sm">
+                    Ответить
+                </a>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="5">Нет новых сообщений</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
