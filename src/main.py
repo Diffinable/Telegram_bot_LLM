@@ -29,18 +29,21 @@ async def message_detail(request: Request, message_id: int, db: Session = Depend
     if not message:
         return {"error": "Message not found"}
     prompt = f"Пользователь написал: {message.text}. Сгенерируй ответ."
-    try:
-        # llm_response = requests.post(
-        #     "http://llm:11434/api/generate",
-        #     json={"model": "tinyllama", "prompt": prompt}
-        # ).json()['response']
+    # try:
+        
+    #     # llm_response = requests.post(
+    #     #     "http://llm:11434/api/generate",
+    #     #     json={"model": "tinyllama", "prompt": prompt}
+    #     # ).json()['response']
 
-        response = Responses(chat_id=message.chat_id, message_id=message_id, text=llm_response, status='pending')
-        db.add(response)
-        db.commit()
+    #     response = Responses(chat_id=message.chat_id, message_id=message_id, text=llm_response, status='pending')
+    #     db.add(response)
+    #     db.commit()
 
-    except Exception as e:
-        llm_response = f"Ошибка генерации: {str(e)}"
+    # except Exception as e:
+    #     llm_response = f"Ошибка генерации: {str(e)}"
+
+    llm_response = "Тестовый ответಮ"
     
     return templates.TemplateResponse("message_detail.html", {
         "request": request,
@@ -77,6 +80,26 @@ async def handle_action(
         pass
 
     return RedirectResponse("/", status_code=303)
+
+
+
+
+def add_test_message():
+    try:
+        db = next(get_db())
+        message = Messages(chat_id=123, user_id=567, text="Text message", status="new")
+        db.add(message)
+        db.commit()
+        print("Тестовое сообщение успешно добавлено")
+    except Exception as e:
+        print(f"Ошибка при добавлении сообщения {str(e)}")
+    finally:
+        db.close()
+
+
+
+if __name__ == "__main__":
+    add_test_message()
 
 
 

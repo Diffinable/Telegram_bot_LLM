@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from src.models import Base
+import sqlite3
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///data/db.sqlite"
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
@@ -16,7 +17,6 @@ def get_db():
 def init_db():
     Base.metadata.create_all(bind=engine)
 
-import sqlite3
 def save_messages(chat_id: str, user_id: int, text: str) -> int:
     conn = sqlite3.connect('data/db.sqlite')
     cursor = conn.cursor()
