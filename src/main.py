@@ -10,8 +10,7 @@ from datetime import datetime
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
-bot_token = "REDACTED"
-# qwen_token = "REDACTED"
+
 
 
 @app.get("/", response_class=HTMLResponse)
