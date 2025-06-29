@@ -6,9 +6,15 @@ import requests
 from src.models import Messages, Responses
 from src.database import get_db
 from datetime import datetime
+from dotenv import load_dotenv
+import os
 
+
+load_dotenv()
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+
+bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
 
 
 
