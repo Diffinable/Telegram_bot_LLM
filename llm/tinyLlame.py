@@ -10,3 +10,8 @@ class TinyLlame:
         outputs = self.model.generate(**inputs, max_new_tokens=100)
         response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
         return response
+    
+if __name__ == "__main__":
+    llm = TinyLlame()
+    response = llm.generate_response("Привет, как дела?")
+    print(response)

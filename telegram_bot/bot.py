@@ -2,7 +2,7 @@ from telegram.ext import Application, MessageHandler, filters
 from telegram import Update
 from src.database import get_db
 from src.models import Messages, Responses
-from llm import TinyLlame
+from llm.tinyLlame import TinyLlame
 import os
 from dotenv import load_dotenv
 
