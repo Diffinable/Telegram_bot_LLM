@@ -11,6 +11,7 @@ import os
 
 
 
+
 load_dotenv()
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
