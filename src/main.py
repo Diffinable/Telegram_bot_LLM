@@ -8,9 +8,7 @@ from src.database import get_db
 from datetime import datetime
 from dotenv import load_dotenv
 import os
-import sys 
 
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 
 load_dotenv()
