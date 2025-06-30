@@ -3,8 +3,8 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 import requests
-from src.models import Messages, Responses
-from src.database import get_db
+from models import Messages, Responses
+from database import get_db
 from datetime import datetime
 from dotenv import load_dotenv
 import os
