@@ -22,5 +22,5 @@ class Responses(Base):
     message_id = Column(Integer, nullable=False)
     text = Column(String, nullable=False)
     timestamp = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    status = Column(String, default='pending')
+    status = Column(String(20), default='pending')
 

@@ -24,10 +24,11 @@ bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
 @app.get("/", response_class=HTMLResponse)
 async def read_messages(request: Request, db: Session = Depends(get_db)):
     messages = db.query(Messages).filter(Messages.status == 'new').all()
-
+    responses = db.query(Responses).filter(Responses.status == "pending").all()
     return templates.TemplateResponse("messages.html", {
         "request": request, 
-        "messages": messages
+        "messages": messages,
+        "responses": responses,
     })
 
 @app.get("/message/{message_id}", response_class=HTMLResponse)
@@ -35,22 +36,14 @@ async def message_detail(request: Request, message_id: int, db: Session = Depend
     message = db.query(Messages).get(message_id)
     if not message:
         return {"error": "Message not found"}
+    
+
     prompt = f"Пользователь написал: {message.text}. Сгенерируй ответ."
-    # try:
-        
-    #     # llm_response = requests.post(
-    #     #     "http://llm:11434/api/generate",
-    #     #     json={"model": "tinyllama", "prompt": prompt}
-    #     # ).json()['response']
+    
+    response = db.query(Responses).filter_by(message_id==message_id, status="pending").first()
 
-    #     response = Responses(chat_id=message.chat_id, message_id=message_id, text=llm_response, status='pending')
-    #     db.add(response)
-    #     db.commit()
 
-    # except Exception as e:
-    #     llm_response = f"Ошибка генерации: {str(e)}"
-
-    llm_response = "Тестовый ответಮ"
+    llm_response = response.text if response else "Not response yet"
     
     return templates.TemplateResponse("message_detail.html", {
         "request": request,
@@ -68,6 +61,7 @@ async def handle_action(
     message = db.query(Messages).get(message_id)
     if not message:
         return {"error": "Message not found"}
+    response = db.query(Responses).filter_by(message_id, status="pending").first()
     if action == "approve":
         response = db.query(Responses).filter_by(message_id=message_id, status='pending').first()
         if response:
