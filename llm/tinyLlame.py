@@ -1,17 +1,46 @@
-from transformers import AutoTokenizer, AutoModelForCausalLM
+import torch
+from transformers import pipeline
 
-class TinyLlame:
+class TinyLlameChat:
     def __init__(self):
-        self.tokenizer = AutoTokenizer.from_pretrained("TinyLlama/TinyLlama-1.1B-Chat-v1.0")
-        self.model = AutoModelForCausalLM.from_pretrained("TinyLlama/TinyLlama-1.1B-Chat-v1.0")
+        self.pipe = pipeline(
+            "text-generation",
+            model="TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+            torch_dtype=torch.bfloat16,
+            device_map="auto",  
+        )
 
-    def generate_response(self, prompt):
-        inputs = self.tokenizer(prompt, return_tensors="pt")
-        outputs = self.model.generate(**inputs, max_new_tokens=100)
-        response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
-        return response
+    def generate_response(self, user_message):
+        messages = [
+            {
+                "role": "system",
+                "content": "Вы помошник службы поддержки. Отвечайте вежливо и по делу.",
+            },
+            {
+                "role": "user", "content": user_message,
+            },
+        ]
+        prompt = self.pipe.tokenizer.apply_chat_template(
+            messages,
+            tokenize=False,
+            add_generation_prompt=True,
+        )
+
+
+        outputs = self.pipe(
+            prompt,
+            max_new_tokens=200,
+            do_sample=True,
+            temperature=0.7,
+            top_k=50,
+            top_p=0.95,
+            repetition_penalty=1.1,
+        )
+        full_response = outputs[0]["generated_text"]
+        return full_response.split("<|assistant|>")[-1].strip()
     
 if __name__ == "__main__":
-    llm = TinyLlame()
-    response = llm.generate_response("Привет, как дела?")
-    print(response)
+    llm = TinyLlameChat()
+    response = llm.generate_response("Как похудеть к лету")
+    print(f"Ответ: {response}")
+    

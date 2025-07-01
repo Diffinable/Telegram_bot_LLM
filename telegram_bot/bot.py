@@ -30,7 +30,7 @@ async def handle_message(update: Update, context):
     db.close()
 
 
-    await update.message.reply_text("Ваше сообщение принято. Оператор скоро ответит")
+    await update.message.reply_text(f"Ваше сообщение принято. Оператор скоро ответит. llm: {llm_response}")
 
 
 
