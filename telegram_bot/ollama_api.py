@@ -10,12 +10,18 @@ def generate_response(prompt: str) -> str:
             "http://localhost:11434/api/generate",
             json={
                 "model": "tinyllama",
-                "prompt": prompt,
+                "prompt": f"""<|system|>
+                    Ты оператор поддержки. Отвечай на русском языке кратко и по делу. 
+                    Если вопрос неясен - уточни детали.</s>
+                    <|user|>
+                    {prompt}</s>
+                    <|assistant|>""",
                 "stream": False,
                 "optoins": {
-                    "temperature": 0.7,
+                    "temperature": 0.3,
                     "top_p": 0.9,
                     "num_ctx": 2048,
+                    "repeat_penalty": 1.2,
                 }            
             },
             timeout=30
