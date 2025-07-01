@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 import requests
 from src.models import Messages, Responses
 from src.database import get_db
+from telegram_bot import ollama_api
 from datetime import datetime
 from dotenv import load_dotenv
 import os
@@ -38,7 +39,6 @@ async def message_detail(request: Request, message_id: int, db: Session = Depend
         return {"error": "Message not found"}
     
 
-    prompt = f"Пользователь написал: {message.text}. Сгенерируй ответ."
     
     response = db.query(Responses).filter_by(message_id==message_id, status="pending").first()
 
@@ -62,8 +62,22 @@ async def handle_action(
     if not message:
         return {"error": "Message not found"}
     response = db.query(Responses).filter_by(message_id, status="pending").first()
-    if action == "approve":
-        response = db.query(Responses).filter_by(message_id=message_id, status='pending').first()
+    if action == "generate":
+        prompt = f"""
+            Ты оператор технической поддержки. Ответь на вопрос клиента вежливо и профессионально. Язык ответа - Русский
+
+            Вопрос: {message.text}
+            Ответ:  
+        """
+        new_response = generate_response(prompt)
+        if response:
+            response.text = new_response
+        else:
+            response = Responses(chat_id=message.chat_id,message_id=message.id,text=new_response,status='pending')
+            db.add(response)
+        db.commit()        
+
+    elif action == "approve":
         if response:
             response.text = response_text
             response.status = 'ready'
@@ -77,9 +91,7 @@ async def handle_action(
             db.add(response)
         message.status = "processed"
         db.commit()
-    elif action == "regenerate":
-        pass
-
+    
     return RedirectResponse("/", status_code=303)
 
 

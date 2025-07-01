@@ -2,14 +2,14 @@ from telegram.ext import Application, MessageHandler, filters
 from telegram import Update
 from src.database import get_db
 from src.models import Messages, Responses
-from llm.tinyLlame import TinyLlame
+from ollama_api import generate_response
 import os
 from dotenv import load_dotenv
 
 
 load_dotenv()
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-llm = TinyLlame()
+
 
 async def handle_message(update: Update, context):
     chat_id = update.message.chat_id
@@ -21,8 +21,15 @@ async def handle_message(update: Update, context):
     db.add(message)
     db.commit()
     
-    prompt = f"Пользователь написал: {text}. Сгенерируй ответ"
-    llm_response = llm.generate_response(prompt)
+    prompt = f"""
+        Ты оператор технической поддержки. Ответь на вопрос клиента вежливо и профессионально. Язык ответа - Русский
+
+        Вопрос: {text}
+        Ответ:  
+    """
+
+
+    llm_response = generate_response(prompt)
 
     response = Responses(chat_id=chat_id, message_id=message.id, text=llm_response, status="pending")
     db.add(response)
