@@ -22,10 +22,7 @@ async def handle_message(update: Update, context):
     db.commit()
     
     prompt = f"""
-        Ты оператор технической поддержки. Ответь на вопрос клиента вежливо и профессионально. Язык ответа - Русский
-
-        Вопрос: {text}
-        Ответ:  
+        Ответь мне на русском языке: {text}
     """
 
 
@@ -37,7 +34,7 @@ async def handle_message(update: Update, context):
     db.close()
 
 
-    await update.message.reply_text(f"Ваше сообщение принято. Оператор скоро ответит. llm: {llm_response}")
+    await update.message.reply_text(f"Ответ:\n{llm_response}")
 
 
 

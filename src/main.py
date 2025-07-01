@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 import requests
 from src.models import Messages, Responses
 from src.database import get_db
-from telegram_bot import ollama_api
+from telegram_bot.ollama_api import generate_response
 from datetime import datetime
 from dotenv import load_dotenv
 import os
@@ -40,7 +40,7 @@ async def message_detail(request: Request, message_id: int, db: Session = Depend
     
 
     
-    response = db.query(Responses).filter_by(message_id==message_id, status="pending").first()
+    response = db.query(Responses).filter_by(message_id=message_id, status="pending").first()
 
 
     llm_response = response.text if response else "Not response yet"
@@ -61,13 +61,10 @@ async def handle_action(
     message = db.query(Messages).get(message_id)
     if not message:
         return {"error": "Message not found"}
-    response = db.query(Responses).filter_by(message_id, status="pending").first()
-    if action == "generate":
+    response = db.query(Responses).filter_by(message_id=message_id, status="pending").first()
+    if action == "regenerate":
         prompt = f"""
-            Ты оператор технической поддержки. Ответь на вопрос клиента вежливо и профессионально. Язык ответа - Русский
-
-            Вопрос: {message.text}
-            Ответ:  
+            Ответь мне на русском языке: {message.text}
         """
         new_response = generate_response(prompt)
         if response:
@@ -76,6 +73,7 @@ async def handle_action(
             response = Responses(chat_id=message.chat_id,message_id=message.id,text=new_response,status='pending')
             db.add(response)
         db.commit()        
+        return RedirectResponse(f"/message/{message_id}", status_code=303)
 
     elif action == "approve":
         if response:
@@ -92,7 +90,7 @@ async def handle_action(
         message.status = "processed"
         db.commit()
     
-    return RedirectResponse("/", status_code=303)
+        return RedirectResponse("/", status_code=303)
 
 
 
