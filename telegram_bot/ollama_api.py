@@ -9,10 +9,10 @@ def generate_response(prompt: str) -> str:
         response = requests.post(
             "http://localhost:11434/api/generate",
             json={
-                "model": "tinyllama",
+                "model": "mistral",
                 "prompt": f"""<|system|>
-                    Ты оператор поддержки. Отвечай на русском языке кратко и по делу. 
-                    Если вопрос неясен - уточни детали.</s>
+                    Ты русскоязычный ассистент. Отвечай кратко и точно. 
+                    </s>
                     <|user|>
                     {prompt}</s>
                     <|assistant|>""",
@@ -24,7 +24,7 @@ def generate_response(prompt: str) -> str:
                     "repeat_penalty": 1.2,
                 }            
             },
-            timeout=30
+            timeout=60
         )
         response_data = response.json()
         log_generation(prompt, response_data["response"])

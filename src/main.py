@@ -6,6 +6,7 @@ import requests
 from src.models import Messages, Responses
 from src.database import get_db
 from telegram_bot.ollama_api import generate_response
+from telegram_bot.bot import send_telegram_message
 from datetime import datetime
 from dotenv import load_dotenv
 import os
@@ -64,7 +65,7 @@ async def handle_action(
     response = db.query(Responses).filter_by(message_id=message_id, status="pending").first()
     if action == "regenerate":
         prompt = f"""
-            Ответь мне на русском языке: {message.text}
+            {message.text}
         """
         new_response = generate_response(prompt)
         if response:
@@ -89,7 +90,8 @@ async def handle_action(
             db.add(response)
         message.status = "processed"
         db.commit()
-    
+
+        send_telegram_message(message.chat_id, response_text, message.id)
         return RedirectResponse("/", status_code=303)
 
 
