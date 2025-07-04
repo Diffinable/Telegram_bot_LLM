@@ -1,13 +1,16 @@
+import os
 import requests
 import json
 import logging
 
 logging.basicConfig(filename="ollama.log", level=logging.INFO)
+OLLAMA_HOST = os.getenv("OLLAMA_HOST")
+
 
 def generate_response(prompt: str) -> str:
     try:
         response = requests.post(
-            "http://localhost:11434/api/generate",
+            f"{OLLAMA_HOST}/api/generate",
             json={
                 "model": "mistral",
                 "prompt": f"""<|system|>
@@ -17,7 +20,7 @@ def generate_response(prompt: str) -> str:
                     {prompt}</s>
                     <|assistant|>""",
                 "stream": False,
-                "optoins": {
+                "options": {
                     "temperature": 0.3,
                     "top_p": 0.9,
                     "num_ctx": 2048,
