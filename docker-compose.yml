@@ -5,16 +5,20 @@ services:
       - "11434:11434"
     volumes: 
       - ollama_data:/root/.ollama
+    networks:
+      - app_network
 
   bot: 
     build: .
-    command: python telegram_bot/bot.py
+    command: bash -c "export PYTHONPATH=/app && python telegram_bot/bot.py"
     volumes:
       - .:/app
     environment:
       - OLLAMA_HOST=http://ollama:11434
     depends_on:
       - ollama
+    networks:
+      - app_network
     env_file:
       - .env
 
@@ -29,6 +33,8 @@ services:
       - OLLAMA_HOST=http://ollama:11434
     depends_on:
       - ollama
+    networks:
+      - app_network
     env_file:
       - .env
   
@@ -36,4 +42,8 @@ services:
 
 volumes:
   ollama_data:
+
+networks:
+  app_network:
+   driver: bridge
   
