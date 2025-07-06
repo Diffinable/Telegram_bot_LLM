@@ -21,13 +21,13 @@ def generate_response(prompt: str) -> str:
                     <|assistant|>""",
                 "stream": False,
                 "options": {
-                    "temperature": 0.3,
+                    "temperature": 0.1,
                     "top_p": 0.9,
-                    "num_ctx": 2048,
+                    "num_ctx": 1024,
                     "repeat_penalty": 1.2,
                 }            
             },
-            timeout=60
+            timeout=120
         )
         response_data = response.json()
         log_generation(prompt, response_data["response"])
